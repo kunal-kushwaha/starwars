@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <script src="phaser.js"></script> 
+
+        <style>
+            
+            body{
+                margin: 0px;
+            }
+
+        </style>
+    </head>
+
+    <body>
+
+        <!-- Lifecycle : ( preload -> create -> update and render ) -->
+        <script>
+            game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.CANVAS, 'first-game',{preload : preload, create : create, update : update, render : render})
+
+            var player;
+            
+            var space;
+
+            var coins;
+
+            var score = 0;
+
+            var coin_sound;
+
+            var bullets;
+
+            var cursors;
+
+            var bullet_sound;
+
+            var score_text;
+
+            var woman;
+            
+            function preload(){ // once
+                game.load.image('jet', 'jet.png')
+                game.load.image('space', 'starfield.png')
+                game.load.image('coin', 'coin.png')
+                game.load.image('bull', 'b.png')
+
+                game.load.audio('coin_touch','metal.wav')
+                game.load.audio('bull_shoot','gun.wav')
+                
+                game.load.spritesheet('woman', 'sheet.png', 189, 230, 14)   // (width, height, number of frames)
+
+            }
+
+            function create(){  // once
+                
+                game.physics.startSystem(Phaser.Physics.ARCADE)
+                
+                space = game.add.tileSprite(0,0, window.innerWidth, window.innerHeight, 'space')
+
+                coins = game.add.group()
+
+                coin_sound = game.add.audio('coin_touch')
+
+                bullet_sound = game.add.audio('bull_shoot')
+
+                cursors = game.input.keyboard.createCursorKeys();
+
+                // creating sprite in group
+                for(let i = 0; i < 10; i++){
+                        coin = coins.create(game.rnd.between(0, window.innerWidth), game.rnd.between(0, window.innerHeight), 'coin')
+                        coin.anchor.set(0.5, 0.5);
+                        game.physics.arcade.enable(coin);
+                        coin.body.mass = -1000;
+                        // coin.body.gravity.y = 100;
+                }
+
+                bullets = game.add.group()
+
+                // var player = game.add.sprite(200, 200, 'jet') // Error (player not defined, write var player outside)
+                player = game.add.sprite(200, 200, 'jet')
+                player.anchor.set(0.5,0.5)  // pointer is at the middle of image
+                // game.add.sprite(200, 200, 'jet')
+                player.scale.set(1.5)
+                
+                console.log(player)
+                console.log(space)  // here we can see tileposition
+
+                game.physics.arcade.enable(player);
+
+                score_text = game.add.text(0, 0, "SCORE : 0", {fill : "#ffff", font : "40px Arial"})
+
+                // woman = game.add.sprite(200, 200, 'woman')
+                // woman.animations.add('naach')
+
+                // woman.animations.play('naach', 14, true) // true is for repeat
+
+                // // to walk
+                // game.physics.arcade.enable(woman)
+                // woman.body.velocity.x = 20;
+
+            }
+
+            function update(){  // updates after every delta time (30-60 times per second is default)
+                // player.y = player.y + 1
+                // player.x = game.input.x     // mouse
+                // player.y = game.input.y
+
+                game.physics.arcade.overlap(player, coins, handler, processor, this);
+                game.physics.arcade.overlap(bullets, coins, bullet_check, bullet_process, this);
+                // game.physics.arcade.collide(bullets, coins, bullet_check, bullet_process, this);    // coins and bullets will collide, note coins will not relocate here
+
+
+                // game.physics.arcade.overlap(player, coins, handler, processor, this);
+
+                player.body.velocity.x = 4 * (game.input.x - player.x);
+                player.body.velocity.y = 4 * (game.input.y - player.y);
+
+                space.tilePosition.y += 5
+
+                degree = Math.atan2((game.input.y - player.y) , (game.input.x - player.x)) * 180 / Math.PI + 90;
+
+                player.angle = degree;
+                
+                score_text.setText("SCORE : " + score)
+
+                // player.angle = player.angle + 1;
+
+            }
+
+            function render(){  // updates continuosly (use this for graphical update)
+                
+                // bullets.forEach(element => {
+                //     bullet.scale.x = bullet.scale.x + .001;
+                // });
+                
+                // game.debug.text("SCORE : " + score, 100, 100)
+                
+                if(cursors.up.isDown){
+                    shoot();
+                }
+            }
+
+            function shoot(){
+
+                // x = Math.cos((player.angle - 90) * Math.PI / 180)
+                // y = Math.sin((player.angle - 90) * Math.PI / 180)
+                // bullet = bullets.create(player.x + (x*50), player.y + (y*50), 'bull')    // so that bullet leaves from the front of the jet
+
+                bullet = bullets.create(player.x , player.y , 'bull')
+
+                bullet.anchor.set(0.5, 0.5);
+
+                game.physics.arcade.enable(bullet);
+                
+                // bullet.body.bounce.x = .5;
+                // bullet.body.bounce.y = .5;  // .5 is coeff of restitution
+
+                bullet.scale.set(0.4)
+                bullet.body.velocity.x = 1000 * Math.cos((player.angle - 90) * Math.PI / 180)
+                bullet.body.velocity.y = 1000 * Math.sin((player.angle - 90) * Math.PI / 180)
+
+                bullet_sound.play();
+
+            }
+            
+            // check when coins and player collide if we have to take that as a collision thats why we return true
+        
+            function handler(p, c){
+                return true;
+            }
+
+            function processor(p, c){
+                // console.log("Boom")
+
+                // score++;
+
+                // c.x = game.rnd.between(0, window.innerWidth);
+                // c.y = game.rnd.between(0, window.innerHeight);
+
+                // coin_sound.play();
+            }
+
+            function bullet_check(b, c){
+                return true;
+            }
+            function bullet_process(b, c){
+                score++;
+                c.x = game.rnd.between(0, window.innerWidth);    // comment when using bullets and coins as collide
+                c.y = game.rnd.between(0, window.innerHeight);
+            }
+
+        </script>
+
+    </body>
+
+</html>
