@@ -81,7 +81,7 @@
                 player = game.add.sprite(200, 200, 'jet')
                 player.anchor.set(0.5,0.5)  // pointer is at the middle of image
                 // game.add.sprite(200, 200, 'jet')
-                player.scale.set(1.5)
+                player.scale.set(0.15)
                 
                 console.log(player)
                 console.log(space)  // here we can see tileposition
@@ -156,7 +156,7 @@
                 // bullet.body.bounce.x = .5;
                 // bullet.body.bounce.y = .5;  // .5 is coeff of restitution
 
-                bullet.scale.set(0.4)
+                bullet.scale.set(0.1)
                 bullet.body.velocity.x = 1000 * Math.cos((player.angle - 90) * Math.PI / 180)
                 bullet.body.velocity.y = 1000 * Math.sin((player.angle - 90) * Math.PI / 180)
 
@@ -188,6 +188,8 @@
                 score++;
                 c.x = game.rnd.between(0, window.innerWidth);    // comment when using bullets and coins as collide
                 c.y = game.rnd.between(0, window.innerHeight);
+
+                coin_sound.play()
             }
 
         </script>
